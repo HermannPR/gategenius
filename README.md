@@ -233,3 +233,7 @@ For questions, demo requests, or collaboration:
 **Saving millions. One flight at a time.**
 
 </div>
+## Screenshots
+
+![Main view](docs/screenshot.png)
+
