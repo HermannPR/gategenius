@@ -10,6 +10,15 @@
 
 ---
 
+## Run it
+
+```bash
+npm install
+npm run dev
+```
+
+Build with `npm run build` and preview with `npm run preview`.
+
 ## The Problem
 
 Gategroup, the world's largest airline catering company, faces **$164 million in annual losses** across their global network due to:
