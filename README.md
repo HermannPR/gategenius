@@ -1,248 +1,95 @@
 # GateGenius
 
-> **AI-Powered Airline Catering Intelligence Platform**
-> Transforming how airlines manage in-flight catering with smart automation and predictive analytics
+> **EN:** Airline catering operations dashboard built at HackMTY 2025 for the Gategroup challenge: expiry tracking, consumption prediction, workforce planning and a smart assignment that sends near-expiry products to the flights most likely to use them.
+> **ES:** Dashboard de operaciones de catering aéreo hecho en HackMTY 2025 para el reto de Gategroup: caducidades, predicción de consumo, planeación de personal y asignación inteligente de productos a vuelos.
 
 [![HackMTY 2025](https://img.shields.io/badge/HackMTY-2025-blue)](https://hackmty.com)
-[![React](https://img.shields.io/badge/React-19.1-61DAFB?logo=react)](https://reactjs.org)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev)
+[![Vite](https://img.shields.io/badge/Vite-7-646CFF?logo=vite)](https://vitejs.dev)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC?logo=tailwind-css)](https://tailwindcss.com)
-[![Vite](https://img.shields.io/badge/Vite-7.1-646CFF?logo=vite)](https://vitejs.dev)
 
----
+**Live demo:** [gategenius.vercel.app](https://gategenius.vercel.app) (runs entirely in the browser on the challenge CSV data, no login)
+**Team:** Abel, Hermann, Diego, Oscar · **My part:** [Hermann Pauwells Rivera](https://hermannpr.github.io/) built the Expiration Intelligence module.
 
-## Run it
+![Expiration Intelligence module](docs/screenshots/expiration.png)
+
+## The challenge
+
+Gategroup brought three operational problems to HackMTY 2025: products expiring before they are loaded, flights provisioned with too much or too little, and drawer-assembly staffing planned by hand. GateGenius answers each with a module and then combines them.
+
+## Modules
+
+| Module | What it does |
+|---|---|
+| **Expiration Intelligence** (my module) | Tracks every LOT and expiry date, raises critical (today) and warning (7 days) alerts, computes value at risk, and supports product scanning with the camera through the Gemini vision API. |
+| **Consumption Prediction** | Per-flight consumption history, waste cost, returned units, and stockout-risk products with loading recommendations. |
+| **Workforce Planning** | Worker-hour estimates from drawer complexity, peak-time charts and utilization. |
+| **Smart Assignment** | Scores near-expiry products against upcoming flights (days to expiry, historical consumption rate, route and flight type, product value) and proposes assignments for approval. |
+
+Every view can export a report as PDF, Excel or CSV, and the UI supports light and dark mode.
+
+| Consumption Prediction | Smart Assignment |
+|---|---|
+| ![Consumption Prediction](docs/screenshots/consumption.png) | ![Smart Assignment](docs/screenshots/smart-assignment.png) |
+
+The dollar projections shown in the Smart Assignment view are hackathon estimates computed from the challenge dataset, not measured results. The sample expiry data is from 2025, so the live demo now shows every lot as expired.
+
+## Architecture
+
+```mermaid
+flowchart LR
+  CSV[public/data/*.csv<br/>expiration, consumption, productivity] -->|PapaParse| DS[feature data services]
+  DS --> ST[Zustand stores]
+  ST --> UI[React dashboards<br/>Recharts]
+  EX[expiry store] --> SA[smartAssignment.js<br/>priority scoring]
+  CO[consumption store] --> SA
+  SA --> UI
+  CAM[Camera scanner] -->|image| GEM[Gemini vision API]
+  GEM --> UI
+  UI --> REP[PDF / Excel / CSV reports]
+```
+
+Code is organized by feature (`src/features/<module>/{services,store,utils}`), with business logic separated from data loading so each team member could own one module during the event. `server/index.js` is an optional Express + MySQL API with JWT auth that the deployed demo does not need.
+
+## Tech stack
+
+- React 19, Vite 7, Tailwind CSS 3.4, Zustand, Recharts
+- PapaParse for CSV ingestion, jsPDF + jspdf-autotable and SheetJS (xlsx) for reports
+- Gemini API (vision) for product scanning
+- Optional backend: Express, MySQL, bcrypt, JWT
+
+## Run locally
+
+Requires Node.js 18+.
 
 ```bash
 npm install
-npm run dev
+cp .env.example .env    # optional: VITE_GEMINI_API_KEY enables camera scanning
+npm run dev             # http://localhost:5173
 ```
 
-Build with `npm run build` and preview with `npm run preview`.
+Other scripts: `npm run build`, `npm run preview`, `npm run lint`, `npm run server` (optional API), `npm run dev:full` (API + frontend).
 
-## The Problem
+Note: any `VITE_` variable is bundled into the browser build, so use a restricted, low-quota Gemini key if you enable scanning on a public deployment.
 
-Gategroup, the world's largest airline catering company, faces **$164 million in annual losses** across their global network due to:
+## Project structure
 
-1. **Food Waste from Expiration** - Products expire before being used, creating massive waste
-2. **Over/Under-Provisioning** - Without consumption data, airlines load too much or too little
-3. **Workforce Inefficiency** - Manual drawer assembly planning leads to over/understaffing
-
-## Our Solution
-
-**GateGenius** is an AI-powered platform that combines three intelligent modules to solve these critical operational challenges:
-
-### Module 1: Expiration Intelligence
-- Real-time tracking of product expiration dates
-- Critical alerts for products expiring today
-- Warning system for items expiring within 7 days
-- Visual scanning with AI-powered barcode recognition
-- Value-at-risk calculations to quantify potential losses
-
-### Module 2: Consumption Prediction
-- Historical consumption analysis by flight type and route
-- AI-driven predictions for optimal product quantities
-- Waste reduction recommendations
-- Stockout risk identification
-- Route-specific consumption patterns
-
-### Module 3: Workforce Planning
-- Automated worker-hour calculations
-- Peak time analysis for optimal shift planning
-- Complexity-based task allocation
-- Real-time utilization metrics
-- Cost optimization recommendations
-
-### Killer Feature: Smart Flight Assignment
-
-Our **Smart Assignment AI** combines all three modules to:
-- Automatically match near-expiry products with flights that have high consumption rates
-- Prioritize assignments based on:
-  - Days until expiration (urgency)
-  - Historical consumption rate (likelihood of use)
-  - Flight type and route compatibility
-  - Product value (maximize waste prevention)
-
-**Result**: Zero-waste optimization that prevents expiration while ensuring products are used.
-
----
-
-## Business Impact
-
-### ROI Breakdown
-
-| Scale | Annual Savings | Facilities |
-|-------|---------------|-----------|
-| **Single Facility** | $93,600 | 1 |
-| **Regional Network** | $18.7M | 200 |
-| **Global Network** | **$164M** | 1,754 |
-
-### Key Metrics
-- **78% reduction** in expiration waste
-- **45% decrease** in over-provisioning
-- **30% improvement** in workforce efficiency
-- **$93,600 saved per facility** annually
-
----
-
-## Technology Stack
-
-### Frontend
-- **React 19.1** - Modern component-based UI
-- **Vite 7.1** - Lightning-fast build tool
-- **Tailwind CSS 3.4** - Utility-first styling with dark mode
-- **Zustand** - Lightweight state management
-- **Recharts** - Beautiful data visualizations
-
-### Data & AI
-- **PapaParse** - Efficient CSV data processing
-- **Gemini AI** - Vision API for product scanning
-- **Smart Algorithms** - Custom optimization logic
-
-### Features
-- **Dark Mode** - Complete light/dark theme support
-- **Responsive Design** - Works on all devices
-- **Real-time Analytics** - Live data processing
-- **Export Capabilities** - PDF & Excel reports
-- **Professional UI** - Clean, modern interface
-
----
-
-## Quick Start
-
-### Prerequisites
-- Node.js 18+ and npm
-
-### Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/oscarcv125/gategenius.git
-
-# Navigate to project directory
-cd gategenius
-
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
+```
+src/
+  features/        expiration, consumption, productivity, smartAssignment (services, stores, utils)
+  modules/         one dashboard component per module
+  algorithms/      smartAssignment.js (product-to-flight scoring)
+  api/             Gemini and Cloud Vision clients, product scanner
+  components/      layout and shared widgets (charts, tables, camera scanner, report downloader)
+  utils/           date helpers, product matcher, PDF/Excel/CSV report generators
+public/data/       challenge CSV datasets
+server/            optional Express + MySQL API
 ```
 
-The application will be available at `http://localhost:5173`
+## Status
 
-### Build for Production
-
-```bash
-npm run build
-npm run preview
-```
-
----
-
-## Features Showcase
-
-### Expiration Dashboard
-- **Live Monitoring**: Real-time tracking of all products
-- **Critical Alerts**: Instant notifications for products expiring today
-- **Warning System**: 7-day advance warnings
-- **Camera Integration**: AI-powered barcode scanning
-- **Value Tracking**: Financial impact calculations
-
-### Consumption Analytics
-- **Flight Selector**: Choose flights for detailed analysis
-- **AI Predictions**: Smart quantity recommendations
-- **Waste Insights**: Identify high-waste products
-- **Stockout Prevention**: Never run out during flights
-- **Historical Trends**: Track consumption patterns
-
-### Workforce Optimizer
-- **Auto-Scheduling**: Calculate exact worker needs
-- **Peak Time Analysis**: Optimize shift allocations
-- **Complexity Breakdown**: Simple/medium/complex task distribution
-- **Utilization Metrics**: Track workforce efficiency
-- **Cost Analysis**: Reduce labor waste
-
-### Smart Assignment
-- **AI Matching**: Intelligent product-to-flight assignment
-- **Priority Scoring**: Multi-factor optimization
-- **Impact Summary**: View savings and waste prevention
-- **Bulk Approval**: Quick confirmation workflow
-- **Real-time Updates**: Instant inventory sync
-
----
-
-## Data Sources
-
-GateGenius processes data from:
-- **Expiration Data**: Product inventory with LOT numbers and expiry dates
-- **Consumption History**: Flight-level usage records
-- **Drawer Assembly**: Workforce and task complexity data
-- **Flight Information**: Routes, passenger counts, service types
-
----
-
-## Team
-
-- **Abel** - Data Services, AI Integration, State Management
-- **Hermann** - Expiration Intelligence Module
-- **Diego** - Consumption Prediction Module
-- **Oscar** - Workforce Planning & Smart Assignment
-
----
-
-## Why GateGenius Wins
-
-1. **Real Business Impact**: Addresses a documented $164M problem
-2. **Complete Solution**: End-to-end platform, not just a concept
-3. **AI-Powered**: Leverages modern machine learning for predictions
-4. **Scalable**: Works from single facility to global network
-5. **Production-Ready**: Fully functional, polished UI/UX
-6. **Dark Mode**: Modern, accessible interface
-7. **Data-Driven**: Built on real operational insights
-
----
-
-## Future Enhancements
-
-- **Mobile App**: Native iOS/Android applications
-- **IoT Integration**: RFID/sensor-based inventory tracking
-- **Blockchain**: Supply chain transparency and traceability
-- **Predictive Maintenance**: Equipment failure prevention
-- **Multi-language**: Support for global operations
-- **Advanced Analytics**: Machine learning model improvements
-
----
+Hackathon project (HackMTY 2025), feature-complete for the demo and no longer under active development. Original team repository: [oscarcv125/gategenius](https://github.com/oscarcv125/gategenius).
 
 ## License
 
-This project was created for HackMTY 2025.
-
----
-
-## Acknowledgments
-
-- **Gategroup** for the real-world operational data and insights
-- **HackMTY 2025** for the opportunity to solve impactful problems
-- **React & Vite** communities for amazing developer tools
-
----
-
-## Contact
-
-For questions, demo requests, or collaboration:
-- **GitHub**: [oscarcv125/gategenius](https://github.com/oscarcv125/gategenius)
-- **Event**: HackMTY 2025
-
----
-
-<div align="center">
-
-### Built at HackMTY 2025
-
-**Saving millions. One flight at a time.**
-
-</div>
-## Screenshots
-
-![Main view](docs/screenshot.png)
-
+[MIT](LICENSE). Challenge data courtesy of Gategroup for HackMTY 2025.
