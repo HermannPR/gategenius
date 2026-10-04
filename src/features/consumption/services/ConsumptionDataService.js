@@ -1,3 +1,4 @@
+import { rebaseDateRows } from '../../../utils/demoDates';
 /**
  * Consumption Data Service
  */
@@ -57,7 +58,7 @@ export class ConsumptionDataService {
         skipEmptyLines: true,
         transformHeader: (header) => header.trim(),
         complete: (results) => {
-          const rows = results.data.map(item => {
+          const rows = rebaseDateRows(results.data).map(item => {
             const toNum = (v) => {
               const n = Number(v);
               return Number.isFinite(n) ? n : 0;

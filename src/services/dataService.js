@@ -1,4 +1,5 @@
 import Papa from 'papaparse';
+import { rebaseExpiryRows, rebaseDateRows, parseLocalDate } from '../utils/demoDates';
 
 /**
  * Data Service - Handles parsing and loading all CSV data
@@ -46,13 +47,13 @@ class DataService {
    * Returns: Product_ID, Product_Name, Weight_or_Volume, LOT_Number, Expiry_Date, Quantity
    */
   async loadExpirationData() {
-    const data = await this.loadCSV('expiration.csv');
+    const data = rebaseExpiryRows(await this.loadCSV('expiration.csv'));
 
     // Parse dates and calculate days until expiry
     return data.map(item => ({
       ...item,
       Quantity: parseInt(item.Quantity) || 0,
-      Expiry_Date_Parsed: new Date(item.Expiry_Date),
+      Expiry_Date_Parsed: parseLocalDate(item.Expiry_Date),
       Days_Until_Expiry: this.calculateDaysUntilExpiry(item.Expiry_Date)
     }));
   }
@@ -64,7 +65,7 @@ class DataService {
    *          Quantity_Consumed, Unit_Cost, Crew_Feedback
    */
   async loadConsumptionData() {
-    const data = await this.loadCSV('consumption.csv');
+    const data = rebaseDateRows(await this.loadCSV('consumption.csv'));
 
     // Parse numeric fields
     return data.map(item => ({
@@ -104,7 +105,7 @@ class DataService {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const expiry = new Date(expiryDate);
+    const expiry = parseLocalDate(expiryDate);
     expiry.setHours(0, 0, 0, 0);
 
     const diffTime = expiry - today;

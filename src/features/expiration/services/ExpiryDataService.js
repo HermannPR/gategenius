@@ -1,3 +1,4 @@
+import { parseLocalDate } from '../../../utils/demoDates';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
 
 export class ExpiryDataService {
@@ -9,7 +10,7 @@ export class ExpiryDataService {
     return rows.map(r => {
       const dateStr = String(r.Expiry_Date ?? r.expiry_date ?? '');
       const onlyDate = dateStr.includes('T') ? dateStr.split('T')[0] : dateStr;
-      const expiry = new Date(onlyDate);
+      const expiry = parseLocalDate(onlyDate);
       const todayMs = Date.now();
       const diffDays = Math.ceil((expiry.getTime() - todayMs) / 86400000);
 

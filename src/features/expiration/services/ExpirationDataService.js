@@ -1,3 +1,4 @@
+import { rebaseExpiryRows, parseLocalDate } from '../../../utils/demoDates';
 import Papa from 'papaparse';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
@@ -14,7 +15,7 @@ export class ExpirationDataService {
       return rows.map(r => {
         const dateStr = String(r.Expiry_Date ?? r.expiry_date ?? '');
         const onlyDate = dateStr.includes('T') ? dateStr.split('T')[0] : dateStr;
-        const expiry = new Date(onlyDate);
+        const expiry = parseLocalDate(onlyDate);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const diffTime = expiry.getTime() - today.getTime();
@@ -48,10 +49,10 @@ export class ExpirationDataService {
         skipEmptyLines: true,
         transformHeader: (header) => header.trim(),
         complete: (results) => {
-          const rows = results.data.map(r => {
+          const rows = rebaseExpiryRows(results.data).map(r => {
             const dateStr = String(r.Expiry_Date || '');
             const onlyDate = dateStr.includes('T') ? dateStr.split('T')[0] : dateStr;
-            const expiry = new Date(onlyDate);
+            const expiry = parseLocalDate(onlyDate);
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             const diffTime = expiry.getTime() - today.getTime();

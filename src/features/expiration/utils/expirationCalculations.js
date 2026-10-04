@@ -1,3 +1,4 @@
+import { parseLocalDate } from '../../../utils/demoDates';
 /**
  * Expiration Calculations
  * Pure utility functions for expiration-related calculations
@@ -12,7 +13,7 @@ export const calculateDaysUntilExpiry = (expiryDate) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const expiry = new Date(expiryDate);
+  const expiry = parseLocalDate(expiryDate);
   expiry.setHours(0, 0, 0, 0);
 
   const diffTime = expiry - today;
